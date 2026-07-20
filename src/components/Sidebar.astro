@@ -1,0 +1,121 @@
+---
+const nav = [
+  { label: 'Home', href: '/', icon: '◇' },
+  { label: 'Archive', href: '/archive', icon: '◈' },
+  { label: 'About', href: '/about', icon: '○' },
+];
+
+const colors = [
+  { label: '绯 · Crimson', href: '/gallery/crimson', dot: '#ff2a2a' },
+  { label: '青 · Cyan',    href: '/gallery/cyan',    dot: '#4fc3f7' },
+  { label: '墨 · Ink',     href: '/gallery/ink',     dot: '#2a2a2a' },
+  { label: '砂 · Sand',    href: '/gallery/sand',    dot: '#d4b483' },
+];
+
+const path = Astro.url.pathname;
+---
+
+<aside class="sidebar">
+  <div class="brand">
+    <div class="logo">L</div>
+    <div class="brand-text">
+      <div class="brand-name">Lichtung</div>
+      <div class="brand-sub">光影地</div>
+    </div>
+  </div>
+
+  <div class="menu-group">
+    <div class="menu-title">Menu</div>
+    {nav.map(item => (
+      <a
+        href={item.href}
+        class:list={['menu-item', { active: path === item.href }]}
+      >
+        <span class="icon">{item.icon}</span>{item.label}
+      </a>
+    ))}
+  </div>
+
+  <div class="menu-group">
+    <div class="menu-title">Colors</div>
+    {colors.map(c => (
+      <a
+        href={c.href}
+        class:list={['menu-item', { active: path.startsWith(c.href) }]}
+      >
+        <span class="dot" style={`background:${c.dot}`}></span>{c.label}
+      </a>
+    ))}
+  </div>
+</aside>
+
+<style>
+  .sidebar {
+    width: 240px;
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    border-right: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    flex-shrink: 0;
+  }
+  :global([data-theme="light"]) .sidebar {
+    background: rgba(255, 255, 255, 0.4);
+  }
+
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: var(--accent);
+    color: var(--bg-color);
+    display: grid; place-items: center;
+    font-family: var(--font-serif);
+    font-size: 22px;
+    box-shadow: 0 0 20px var(--accent-soft);
+  }
+  .brand-name {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    letter-spacing: 2px;
+  }
+  .brand-sub {
+    font-size: 11px;
+    color: var(--text-sub);
+    letter-spacing: 3px;
+  }
+
+  .menu-group { display: flex; flex-direction: column; gap: 4px; }
+  .menu-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-sub);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding: 0 4px;
+  }
+  .menu-item {
+    font-size: 14px;
+    color: var(--text-sub);
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+  .menu-item:hover { color: var(--text-main); background: var(--panel-bg); }
+  .menu-item.active {
+    color: var(--text-main);
+    background: linear-gradient(90deg, var(--panel-bg), transparent);
+    border-left: 2px solid var(--accent);
+    padding-left: 12px;
+  }
+  .icon { font-size: 12px; color: var(--accent); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
+</style>
