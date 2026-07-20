@@ -1,0 +1,215 @@
+---
+// 曲库可以从 JSON 读，这里先内联示例
+const tracks = [
+  { title: 'Silica Waves', artist: 'Lumina Collective', src: '/audio/silica.mp3' },
+  { title: 'Void Bloom',   artist: 'Ashen Drift',       src: '/audio/void.mp3' },
+];
+---
+
+<aside class="player-panel" transition:persist="player-panel">
+  <div class="player-cover">
+    <div class="cover-glow"></div>
+  </div>
+
+  <div class="player-info">
+    <h2 id="track-title">{tracks[0].title}</h2>
+    <p id="track-artist">{tracks[0].artist}</p>
+  </div>
+
+  <div class="progress-container">
+    <div class="progress-bar" id="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div class="progress-time">
+      <span id="time-current">0:00</span>
+      <span id="time-total">0:00</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="btn-prev" aria-label="Previous">
+      <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+    </button>
+    <button class="btn btn-play" id="btn-play" aria-label="Play">
+      <svg id="icon-play" viewBox="0 0 24 24" style="width:28px;height:28px"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+    <button class="btn" id="btn-next" aria-label="Next">
+      <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+    </button>
+  </div>
+
+  <audio id="player-audio" transition:persist="player-audio" preload="metadata"></audio>
+</aside>
+
+<script is:inline define:vars={{ tracks }}>
+  // 用 window 单例，避免 View Transition 后重复绑定
+  if (!window.__lichtungPlayer) {
+    window.__lichtungPlayer = { index: 0, tracks };
+  }
+  const state = window.__lichtungPlayer;
+
+  function fmt(t) {
+    if (!isFinite(t)) return '0:00';
+    const m = Math.floor(t / 60);
+    const s = Math.floor(t % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  function bind() {
+    const audio = document.getElementById('player-audio');
+    if (!audio) return;
+
+    const titleEl = document.getElementById('track-title');
+    const artistEl = document.getElementById('track-artist');
+    const fill = document.getElementById('progress-fill');
+    const bar = document.getElementById('progress-bar');
+    const cur = document.getElementById('time-current');
+    const tot = document.getElementById('time-total');
+    const iconPlay = document.getElementById('icon-play');
+
+    function load(i) {
+      const t = state.tracks[i];
+      state.index = i;
+      if (!audio.src.endsWith(t.src)) audio.src = t.src;
+      titleEl.textContent = t.title;
+      artistEl.textContent = t.artist;
+    }
+
+    function updateIcon() {
+      iconPlay.innerHTML = audio.paused
+        ? '<path d="M8 5v14l11-7z"/>'
+        : '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>';
+    }
+
+    // 首次加载
+    if (!audio.src) load(0);
+    updateIcon();
+
+    document.getElementById('btn-play').onclick = () => {
+      audio.paused ? audio.play() : audio.pause();
+    };
+    document.getElementById('btn-prev').onclick = () => {
+      load((state.index - 1 + state.tracks.length) % state.tracks.length);
+      audio.play();
+    };
+    document.getElementById('btn-next').onclick = () => {
+      load((state.index + 1) % state.tracks.length);
+      audio.play();
+    };
+
+    audio.ontimeupdate = () => {
+      if (audio.duration) {
+        fill.style.width = (audio.currentTime / audio.duration) * 100 + '%';
+        cur.textContent = fmt(audio.currentTime);
+      }
+    };
+    audio.onloadedmetadata = () => (tot.textContent = fmt(audio.duration));
+    audio.onplay = updateIcon;
+    audio.onpause = updateIcon;
+    audio.onended = () => document.getElementById('btn-next').click();
+
+    bar.onclick = (e) => {
+      const rect = bar.getBoundingClientRect();
+      audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+    };
+  }
+
+  // 首次 + 每次 View Transition 后重新绑定 UI（audio 元素本身被 persist 保留）
+  bind();
+  document.addEventListener('astro:after-swap', bind);
+</script>
+
+<style>
+  .player-panel {
+    width: 320px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-left: 1px solid var(--border-color);
+    background: var(--panel-bg);
+    backdrop-filter: blur(20px);
+    flex-shrink: 0;
+  }
+  .player-cover {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 16px;
+    background: var(--bg-elevated);
+    margin-bottom: 26px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+  }
+  .cover-glow {
+    position: absolute; inset: -20%;
+    background:
+      radial-gradient(circle at 70% 30%, var(--accent-soft), transparent 55%),
+      radial-gradient(circle at 30% 70%, var(--accent-dim), transparent 55%);
+    filter: blur(30px);
+    mix-blend-mode: screen;
+    animation: drift 12s ease-in-out infinite alternate;
+  }
+  @keyframes drift {
+    from { transform: translate(0, 0); }
+    to   { transform: translate(6%, -4%); }
+  }
+
+  .player-info { text-align: center; width: 100%; margin-bottom: 24px; }
+  .player-info h2 {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .player-info p { font-size: 13px; color: var(--text-sub); letter-spacing: 1px; }
+
+  .progress-container { width: 100%; margin-bottom: 24px; }
+  .progress-bar {
+    width: 100%;
+    height: 3px;
+    background: var(--border-color);
+    border-radius: 2px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    border-radius: 2px;
+    box-shadow: 0 0 8px var(--accent-soft);
+    transition: width 0.1s linear;
+  }
+  .progress-time {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .controls { display: flex; align-items: center; gap: 24px; }
+  .btn {
+    background: transparent;
+    border: none;
+    color: var(--text-sub);
+    cursor: pointer;
+    display: grid; place-items: center;
+    transition: color 0.2s;
+  }
+  .btn:hover { color: var(--text-main); }
+  .btn svg { width: 20px; height: 20px; fill: currentColor; }
+  .btn-play {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--text-main);
+    color: var(--bg-color);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .btn-play:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px var(--accent-soft);
+  }
+</style>
