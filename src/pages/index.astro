@@ -1,0 +1,162 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const folders = [
+  { name: '绯 · Crimson', desc: '深红与灰烬', count: 24, href: '/gallery/crimson', color: '#ff2a2a' },
+  { name: '青 · Cyan',    desc: '雨与霓虹',    count: 18, href: '/gallery/cyan',    color: '#4fc3f7' },
+  { name: '墨 · Ink',     desc: '黑白与静',    count: 32, href: '/gallery/ink',     color: '#666666' },
+  { name: '砂 · Sand',    desc: '旧纸与暖',    count: 15, href: '/gallery/sand',    color: '#d4b483' },
+  { name: '苔 · Moss',    desc: '森与湿地',    count: 12, href: '/gallery/moss',    color: '#7ba05b' },
+  { name: '霭 · Mist',    desc: '雾与远山',    count: 20, href: '/gallery/mist',    color: '#a8b5c2' },
+];
+---
+
+<BaseLayout title="Index">
+  <section class="hero">
+    <div class="hero-image">
+      <div class="hero-glow"></div>
+    </div>
+    <div class="hero-text">
+      <p class="eyebrow">Curated Gallery · 2026</p>
+      <h1>光影地</h1>
+      <p class="desc">
+        Lichtung — 林中空地，光透进来的地方。<br />
+        按色相分类的画册，配一段可听见的空气。
+      </p>
+    </div>
+  </section>
+
+  <h2 class="section-title">Folders</h2>
+  <div class="folder-grid">
+    {folders.map(f => (
+      <a href={f.href} class="folder" style={`--folder-color:${f.color}`}>
+        <div class="folder-tab"></div>
+        <div class="folder-body">
+          <div class="folder-glow"></div>
+          <div class="folder-content">
+            <h3>{f.name}</h3>
+            <p>{f.desc}</p>
+            <span class="count">{f.count} images</span>
+          </div>
+        </div>
+      </a>
+    ))}
+  </div>
+</BaseLayout>
+
+<style>
+  .hero {
+    display: flex;
+    align-items: flex-end;
+    gap: 30px;
+    margin-bottom: 60px;
+  }
+  .hero-image {
+    width: 200px; height: 200px;
+    border-radius: 12px;
+    background: var(--bg-elevated);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+  }
+  .hero-glow {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 130px; height: 130px;
+    background: var(--accent);
+    filter: blur(40px);
+    opacity: 0.6;
+  }
+  .eyebrow { color: var(--text-sub); font-size: 12px; letter-spacing: 3px; margin-bottom: 12px; }
+  .hero-text h1 {
+    font-family: var(--font-serif);
+    font-size: 56px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    margin-bottom: 12px;
+  }
+  .desc { color: var(--text-sub); font-size: 14px; line-height: 1.7; }
+
+  .section-title {
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-sub);
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+
+  .folder-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+  }
+
+  /* 文件夹隐喻：上方一个标签突起 + 下方主体 */
+  .folder {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+  .folder:hover { transform: translateY(-6px); }
+
+  .folder-tab {
+    width: 60%;
+    height: 14px;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    margin-left: 20px;
+    position: relative;
+    z-index: 2;
+  }
+  .folder-body {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0 16px 16px 16px;
+    padding: 32px 22px 22px;
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    transition: border-color 0.3s;
+  }
+  .folder:hover .folder-body { border-color: var(--folder-color); }
+
+  .folder-glow {
+    position: absolute;
+    top: 30%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px; height: 100px;
+    background: var(--folder-color);
+    filter: blur(50px);
+    opacity: 0.35;
+    transition: opacity 0.3s, width 0.3s, height 0.3s;
+  }
+  .folder:hover .folder-glow {
+    opacity: 0.6;
+    width: 130px; height: 130px;
+  }
+
+  .folder-content { position: relative; z-index: 1; }
+  .folder-content h3 {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+  .folder-content p { font-size: 12px; color: var(--text-sub); margin-bottom: 14px; }
+  .count {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+  }
+</style>
