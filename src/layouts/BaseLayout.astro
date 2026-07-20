@@ -1,0 +1,91 @@
+---
+import { ViewTransitions } from 'astro:transitions';
+import Sidebar from '../components/Sidebar.astro';
+import MusicPlayer from '../components/MusicPlayer.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  /** 页面专属主色（覆盖 --accent） */
+  accent?: string;
+  accentSoft?: string;
+  accentDim?: string;
+}
+
+const { title, accent, accentSoft, accentDim } = Astro.props;
+
+// 生成页面级 CSS 覆盖
+const pageStyle = accent
+  ? `
+    --accent: ${accent};
+    --accent-soft: ${accentSoft ?? accent + '66'};
+    --accent-dim: ${accentDim ?? accent + '1f'};
+  `
+  : '';
+---
+
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} · Lichtung 光影地</title>
+    <ViewTransitions />
+    <script is:inline>
+      // 提前读主题偏好，避免闪白
+      const saved = localStorage.getItem('lichtung-theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+    </script>
+  </head>
+  <body style={pageStyle}>
+    <Sidebar />
+
+    <main class="main-content">
+      <div class="header">
+        <div class="crumb">
+          <span class="crumb-brand">Lichtung</span>
+          <span class="crumb-sep">/</span>
+          <span class="crumb-title">{title}</span>
+        </div>
+        <ThemeToggle />
+      </div>
+
+      <slot />
+    </main>
+
+    <MusicPlayer />
+
+    <style>
+      .main-content {
+        flex: 1;
+        padding: 32px 40px;
+        overflow-y: auto;
+        position: relative;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+      }
+      .crumb {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        font-family: var(--font-serif);
+      }
+      .crumb-brand {
+        font-size: 20px;
+        letter-spacing: 2px;
+        color: var(--text-main);
+      }
+      .crumb-sep { color: var(--text-faint); }
+      .crumb-title {
+        font-size: 15px;
+        color: var(--text-sub);
+        letter-spacing: 1px;
+      }
+    </style>
+  </body>
+</html>
